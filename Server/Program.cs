@@ -49,7 +49,7 @@ class Server
                                                                                             ) + eol
                                                                                             + eol);
 
-                stream.Write(response, 0, response.Length);
+                stream.Write(response, 0, response.Length); 
             }
         }
     }
