@@ -14,26 +14,45 @@ class Server
         server.Start();
         Console.WriteLine("Server has started on 127.0.0.1:80.{0}Waiting for a connection...", Environment.NewLine);
 
-        TcpClient client = server.AcceptTcpClient();
+        while (true)
+        {
+            TcpClient client = server.AcceptTcpClient();
+            MakeNewConnection(client);
+        }
+    }
 
-        Console.WriteLine("A client connected.");
+
+    public static void MakeNewConnection(TcpClient client)
+    {
+        var thread = new Thread(NewClient);
+        thread.Start(client);
+    }
+
+    public static void NewClient(object data)
+    {
+        var client = (TcpClient)data;
+
+        string adress = client.Client.AddressFamily.ToString();
+
+        Console.WriteLine("{0} has connected!", adress);
 
         NetworkStream stream = client.GetStream();
 
-        //enter to an infinite cycle to be able to handle every change in stream
         while (true)
         {
-
-            while (!stream.DataAvailable) ;
-
-            Byte[] bytes = new Byte[client.Available];
-
-            stream.Read(bytes, 0, bytes.Length);
-
-            String data = Encoding.UTF8.GetString(bytes);
+            byte[] receivedbuffer = new byte[client.Available];
 
 
-            if (new System.Text.RegularExpressions.Regex("^GET").IsMatch(data))
+
+
+            int receivedbytes = stream.Read(receivedbuffer, 0, receivedbuffer.Length);
+            string message = Encoding.UTF8.GetString(receivedbuffer);
+  
+
+            //byte[] sendBuffer = Encoding.UTF8.GetBytes(newmessage);
+            //stream.Write(sendBuffer, 0, sendBuffer.Length);
+
+            if(new System.Text.RegularExpressions.Regex("^GET").IsMatch(message))
             {
                 const string eol = "\r\n"; // HTTP/1.1 defines the sequence CR LF as the end-of-line marker
 
@@ -43,13 +62,13 @@ class Server
                                                                                             + "Sec-WebSocket-Accept: " + Convert.ToBase64String(
                                                                                                 System.Security.Cryptography.SHA1.Create().ComputeHash(
                                                                                                     Encoding.UTF8.GetBytes(
-                                                                                                        new System.Text.RegularExpressions.Regex("Sec-WebSocket-Key: (.*)").Match(data).Groups[1].Value.Trim() + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
+                                                                                                        new System.Text.RegularExpressions.Regex("Sec-WebSocket-Key: (.*)").Match(message).Groups[1].Value.Trim() + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
                                                                                                     )
                                                                                                 )
                                                                                             ) + eol
                                                                                             + eol);
 
-                stream.Write(response, 0, response.Length); 
+                stream.Write(response, 0, response.Length);
             }
         }
     }
