@@ -38,38 +38,40 @@ class Server
 
         NetworkStream stream = client.GetStream();
 
+        string command = "";
+
         while (true)
         {
+            if (!stream.DataAvailable)
+            {
+                if (!client.Connected)
+                {
+                    Console.WriteLine("{0} diconnected!", adress);
+                    break;
+                }
+                continue;
+            }
+
             byte[] receivedbuffer = new byte[client.Available];
-
-
-
 
             int receivedbytes = stream.Read(receivedbuffer, 0, receivedbuffer.Length);
             string message = Encoding.UTF8.GetString(receivedbuffer);
-  
 
-            //byte[] sendBuffer = Encoding.UTF8.GetBytes(newmessage);
-            //stream.Write(sendBuffer, 0, sendBuffer.Length);
 
-            if(new System.Text.RegularExpressions.Regex("^GET").IsMatch(message))
+            command += message;
+            if (message.Substring(message.Length - 2, 2) != "\r\n")
             {
-                const string eol = "\r\n"; // HTTP/1.1 defines the sequence CR LF as the end-of-line marker
+                string answer = CheckCommand(command);
 
-                Byte[] response = Encoding.UTF8.GetBytes("HTTP/1.1 101 Switching Protocols" + eol
-                                                                                            + "Connection: Upgrade" + eol
-                                                                                            + "Upgrade: websocket" + eol
-                                                                                            + "Sec-WebSocket-Accept: " + Convert.ToBase64String(
-                                                                                                System.Security.Cryptography.SHA1.Create().ComputeHash(
-                                                                                                    Encoding.UTF8.GetBytes(
-                                                                                                        new System.Text.RegularExpressions.Regex("Sec-WebSocket-Key: (.*)").Match(message).Groups[1].Value.Trim() + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
-                                                                                                    )
-                                                                                                )
-                                                                                            ) + eol
-                                                                                            + eol);
 
-                stream.Write(response, 0, response.Length);
+
+                command = "";
             }
         }
+    }
+
+    public static string CheckCommand(string command)
+    {
+        return "";
     }
 }
