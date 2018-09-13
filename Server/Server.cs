@@ -4,69 +4,51 @@ using System;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Server.GameObjects;
+using WebSocketSharp;
+using WebSocketSharp.Server;
 
-class Server
+class ServerInstance
 {
+    private static Map _test;
+
     public static void Main()
     {
-        TcpListener server = new TcpListener(IPAddress.Parse("127.0.0.1"), 10080);
 
+        _test = new Map(30);
+        _test.ReadMapFromFile(@"C:\Users\igubanov\Source\LR\Server\resources\map.txt");
+
+        Console.WriteLine(_test.ConvertMapToString());
+
+        var server = new WebSocketServer("ws://localhost:10080");
+        server.AddWebSocketService<WebSocketConnections>("/");
         server.Start();
-        Console.WriteLine("Server has started on 127.0.0.1:80.{0}Waiting for a connection...", Environment.NewLine);
+        
+        Console.WriteLine("Server has started.{0}Waiting for a connection...", Environment.NewLine);
 
-        while (true)
+
+        Console.ReadKey(true);
+        server.Stop();
+    }
+
+
+    private class WebSocketConnections : WebSocketBehavior
+    {
+        protected override void OnMessage(MessageEventArgs e)
         {
-            TcpClient client = server.AcceptTcpClient();
-            MakeNewConnection(client);
+            Console.WriteLine($"get message {e.Data} from host: {this.Context.Host} with key {this.Context.SecWebSocketKey}");      
+
+            Send(_test.ConvertMapToString());
         }
-    }
 
-
-    public static void MakeNewConnection(TcpClient client)
-    {
-        var thread = new Thread(NewClient);
-        thread.Start(client);
-    }
-
-    public static void NewClient(object data)
-    {
-        var client = (TcpClient)data;
-
-        string adress = client.Client.AddressFamily.ToString();
-
-        Console.WriteLine("{0} has connected!", adress);
-
-        NetworkStream stream = client.GetStream();
-
-        string command = "";
-
-        while (true)
+        protected override void OnOpen()
         {
-            if (!stream.DataAvailable)
-            {
-                if (!client.Connected)
-                {
-                    Console.WriteLine("{0} diconnected!", adress);
-                    break;
-                }
-                continue;
-            }
+            Console.WriteLine($"new connection from {this.Context.Host} with key {this.Context.SecWebSocketKey}");
+        }
 
-            byte[] receivedbuffer = new byte[client.Available];
-
-            int receivedbytes = stream.Read(receivedbuffer, 0, receivedbuffer.Length);
-            string message = Encoding.UTF8.GetString(receivedbuffer);
-
-
-            command += message;
-            if (message.Substring(message.Length - 2, 2) != "\r\n")
-            {
-                string answer = CheckCommand(command);
-
-
-
-                command = "";
-            }
+        protected override void OnClose(CloseEventArgs e)
+        {
+            Console.WriteLine($"Connect lost {this.Context.Host} with key {this.Context.SecWebSocketKey} reason - {e.Reason}");
         }
     }
 
