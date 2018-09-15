@@ -10,15 +10,18 @@ using WebSocketSharp.Server;
 
 class ServerInstance
 {
-    private static Map _test;
+    private static World test;
 
     public static void Main()
     {
 
-        _test = new Map(30);
-        _test.ReadMapFromFile(@"C:\Users\igubanov\Source\LR\Server\resources\map.txt");
+        
+        var map = new Map(30);
+        map.ReadMapFromFile(@"C:\Users\igubanov\Source\LR\Server\resources\map.txt");
 
-        Console.WriteLine(_test.ConvertMapToString());
+        test = new World(map);
+
+        Console.WriteLine(map.ConvertMapToString());
 
         var server = new WebSocketServer("ws://localhost:10080");
         server.AddWebSocketService<WebSocketConnections>("/");
@@ -38,12 +41,12 @@ class ServerInstance
         {
             Console.WriteLine($"get message {e.Data} from host: {this.Context.Host} with key {this.Context.SecWebSocketKey}");      
 
-            Send(_test.ConvertMapToString());
+            Send(test.map.ConvertMapToString());
         }
 
         protected override void OnOpen()
         {
-            Console.WriteLine($"new connection from {this.Context.Host} with key {this.Context.SecWebSocketKey}");
+            Console.WriteLine($"New connection from {this.Context.Host} with key {this.Context.SecWebSocketKey}");
         }
 
         protected override void OnClose(CloseEventArgs e)

@@ -16,27 +16,57 @@ namespace Server.GameObjects
         }
     }
 
-    public abstract class Gamers : Cell
+    public abstract class Actor : Cell
     {
-        public Gamers(int x, int y)
+        private World world;
+
+        public Actor(int x, int y, World world)
             : base(x, y)
         {
-
+            this.world = world;
         }
 
-        public Cell GetUpCell(Map map)
+        public Cell GetUpCell()
         {
-            if (this.CoordY == 0)
-                return null;
-
-            map.
-
+            return this.world.GetCell(this.CoordX, this.CoordY - 1);
         }
 
-        public bool CheckDrillDeath(Map map)
+        public Cell GetDownCell()
         {
-            
+            return this.world.GetCell(this.CoordX, this.CoordY + 1);
+        }
+
+        public Cell GetLeftCell()
+        {
+            return this.world.GetCell(this.CoordX - 1, this.CoordY);
+        }
+
+        public Cell GetRightCell()
+        {
+            return this.world.GetCell(this.CoordX + 1, this.CoordY);
+        }
+
+        public bool CheckDeathInPit(Map map)
+        {
             return true;
+        }
+    }
+
+    public class Player : Actor
+    {
+        private string uid;
+
+        public Player(int x, int y, World world)
+            : base(0, 0, world)
+        {
+        }
+    }
+
+    public class Hunter : Actor
+    {
+        public Hunter(int x, int y, World world)
+            : base(x, y, world)
+        {
         }
     }
 

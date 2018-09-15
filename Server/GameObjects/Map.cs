@@ -7,7 +7,7 @@ namespace Server.GameObjects
 {
     public class Map
     {
-        private readonly CellChar[,] Cells = null;
+        public readonly CellChar[,] Cells = null;
 
         public int SizeOfMap { get; }
 
@@ -52,7 +52,6 @@ namespace Server.GameObjects
                 }
             }
         }
-
 
         public string ConvertMapToString()
         {
