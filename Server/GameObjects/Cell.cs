@@ -4,9 +4,9 @@ namespace Server.GameObjects
 {
     public class Cell
     {
-        protected int CoordX;
-        protected int CoordY;
-        protected CellChar type;
+        public int CoordX;
+        public int CoordY;
+        public CellChar type;
 
         public Cell(int x, int y, CellChar typeOfCell = CellChar.None)
         {
@@ -16,35 +16,69 @@ namespace Server.GameObjects
         }
     }
 
-    public abstract class Actor : Cell
+    public class Pit : Cell
     {
-        private World world;
 
-        public Actor(int x, int y, World world)
+        private const int stepForLife = 5;
+        private int currentStep;
+
+        public new CellChar type
+        {
+            get
+            {
+                CellChar currentBlock = CellChar.Brick;
+
+                if (this.currentStep == stepForLife)
+                    currentBlock = CellChar.DrillPit;
+                else if (this.currentStep > 0 && this.currentStep < stepForLife)
+                    Enum.TryParse<CellChar>($"PitFill{this.currentStep}", out currentBlock);
+
+                return currentBlock;
+            }
+        }
+
+        public Pit(int x, int y)
             : base(x, y)
         {
-            this.world = world;
+            currentStep = stepForLife;
         }
 
-        public Cell GetUpCell()
+        public Pit NextStep()
         {
-            return this.world.GetCell(this.CoordX, this.CoordY - 1);
+            this.currentStep++;
+            return this;
+        }
+    }
+
+    public abstract class Actor : Cell
+    {
+        //private World world;
+
+        public Actor(int x, int y)
+            : base(x, y)
+        {
+            //this.world = world;
         }
 
-        public Cell GetDownCell()
-        {
-            return this.world.GetCell(this.CoordX, this.CoordY + 1);
-        }
+        //public Cell GetUpCell()
+        //{
+        //    return this.world.GetCell(this.CoordX, this.CoordY - 1);
+        //}
 
-        public Cell GetLeftCell()
-        {
-            return this.world.GetCell(this.CoordX - 1, this.CoordY);
-        }
+        //public Cell GetDownCell()
+        //{
+        //    return this.world.GetCell(this.CoordX, this.CoordY + 1);
+        //}
 
-        public Cell GetRightCell()
-        {
-            return this.world.GetCell(this.CoordX + 1, this.CoordY);
-        }
+        //public Cell GetLeftCell()
+        //{
+        //    return this.world.GetCell(this.CoordX - 1, this.CoordY);
+        //}
+
+        //public Cell GetRightCell()
+        //{
+        //    return this.world.GetCell(this.CoordX + 1, this.CoordY);
+        //}
 
         public bool CheckDeathInPit(Map map)
         {
@@ -54,18 +88,24 @@ namespace Server.GameObjects
 
     public class Player : Actor
     {
-        private string uid;
+        public readonly ServerInstance.WebSocketConnections wsSess;
 
-        public Player(int x, int y, World world)
-            : base(0, 0, world)
+        public Player(int x, int y, ServerInstance.WebSocketConnections webSocketSession)
+            : base(0, 0)
         {
+            this.wsSess = webSocketSession;
+        }
+
+        public void SendMap(string map)
+        {
+            wsSess.Send(map);
         }
     }
 
     public class Hunter : Actor
     {
-        public Hunter(int x, int y, World world)
-            : base(x, y, world)
+        public Hunter(int x, int y)
+            : base(x, y)
         {
         }
     }
@@ -101,12 +141,12 @@ namespace Server.GameObjects
             }
         }
 
-        public static bool CanBeFall(this CellChar cell)
+        public static bool CanBeFall(CellChar cellDown)
         {
-            if (cell == CellChar.Ladder)
+            if (cellDown == CellChar.Ladder)
                 return false;
 
-            return CanBeMovable(cell);
+            return CanBeMovable(cellDown);
         }
     }
 }
