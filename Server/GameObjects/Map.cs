@@ -31,6 +31,7 @@ namespace Server.GameObjects
 
         public void ConvertMapFromString(string data)
         {
+            data = data.Replace("board=", "");
             var fileSize = data.Length;
 
             if (fileSize != SizeOfMap * SizeOfMap)

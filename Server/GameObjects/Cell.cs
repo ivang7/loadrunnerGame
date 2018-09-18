@@ -4,9 +4,9 @@ namespace Server.GameObjects
 {
     public class Cell
     {
-        protected int CoordX;
-        protected int CoordY;
-        protected CellChar type;
+        public int CoordX;
+        public int CoordY;
+        public CellChar type;
 
         public Cell(int x, int y, CellChar typeOfCell = CellChar.None)
         {
@@ -28,8 +28,8 @@ namespace Server.GameObjects
         {
             if (this.CoordY == 0)
                 return null;
-
-            map.
+            return null;
+            //map.
 
         }
 

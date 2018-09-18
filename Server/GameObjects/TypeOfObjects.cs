@@ -40,8 +40,8 @@
 
         //Герои других игроков, соответственно
         OtherHeroDie = (int)'Z',
-        OtherHeroLeft = (int)',',
-        OtherHeroRight = (int)'=',
+        OtherHeroLeft = (int)')',
+        OtherHeroRight = (int)'(',
         OtherHeroLadder = (int)'U',
         OtherHeroPipeLeft = (int)'Э',
         OtherHeroPipeRight = (int)'Є',
